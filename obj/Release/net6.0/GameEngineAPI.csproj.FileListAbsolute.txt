@@ -1,0 +1,15 @@
+C:\Users\admin\Documents\GameEngine\GameEngineAPI\obj\Release\net6.0\GameEngineAPI.csproj.AssemblyReference.cache
+C:\Users\admin\Documents\GameEngine\GameEngineAPI\obj\Release\net6.0\GameEngineAPI.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\admin\Documents\GameEngine\GameEngineAPI\obj\Release\net6.0\GameEngineAPI.AssemblyInfoInputs.cache
+C:\Users\admin\Documents\GameEngine\GameEngineAPI\obj\Release\net6.0\GameEngineAPI.AssemblyInfo.cs
+C:\Users\admin\Documents\GameEngine\GameEngineAPI\obj\Release\net6.0\GameEngineAPI.csproj.CoreCompileInputs.cache
+C:\Users\admin\Documents\GameEngine\GameEngineAPI\bin\Release\net6.0\GameEngineAPI.deps.json
+C:\Users\admin\Documents\GameEngine\GameEngineAPI\bin\Release\net6.0\GameEngineAPI.dll
+C:\Users\admin\Documents\GameEngine\GameEngineAPI\bin\Release\net6.0\ref\GameEngineAPI.dll
+C:\Users\admin\Documents\GameEngine\GameEngineAPI\bin\Release\net6.0\GameEngineAPI.pdb
+C:\Users\admin\Documents\GameEngine\GameEngineAPI\bin\Release\net6.0\BulletSharp.dll
+C:\Users\admin\Documents\GameEngine\GameEngineAPI\bin\Release\net6.0\BulletSharp.dll.config
+C:\Users\admin\Documents\GameEngine\GameEngineAPI\obj\Release\net6.0\GameEngineAPI.csproj.CopyComplete
+C:\Users\admin\Documents\GameEngine\GameEngineAPI\obj\Release\net6.0\GameEngineAPI.dll
+C:\Users\admin\Documents\GameEngine\GameEngineAPI\obj\Release\net6.0\ref\GameEngineAPI.dll
+C:\Users\admin\Documents\GameEngine\GameEngineAPI\obj\Release\net6.0\GameEngineAPI.pdb
