@@ -36,7 +36,7 @@ namespace GameEngineAPI.Render
             window.Resize += (ResizeEventArgs obj) =>
             {
                 GL.Viewport(0, 0, obj.Width, obj.Height);
-                //camera.AspectRatio = window.Size.X / (float)window.Size.Y;
+                camera.AspectRatio = window.Size.X / (float)window.Size.Y;
             };
 
             // then Update, then we starting Render
@@ -67,7 +67,9 @@ namespace GameEngineAPI.Render
             GL.ClearColor(SkyColor[0], SkyColor[1], SkyColor[2], 1);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            for (int i = 0; i < meshes.Count; i++)
+            SceneManager.Render();
+            
+            /*for (int i = 0; i < meshes.Count; i++)
             {
                 
                 //prepairing data
@@ -134,7 +136,7 @@ namespace GameEngineAPI.Render
                 GL.DeleteBuffer(VBO);
                 GL.DeleteBuffer(EBO);
                 GL.DeleteBuffer(TBO);
-            }
+            }*/
             meshes.Clear();
 
             window.SwapBuffers();

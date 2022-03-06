@@ -65,5 +65,7 @@ namespace GameEngineAPI.Components
 
             //Console.WriteLine(Position);
         }
+
+        public void OnRender() { }
     }
 }

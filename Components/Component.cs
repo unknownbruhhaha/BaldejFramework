@@ -8,5 +8,7 @@
 
 
         public void OnUpdate();
+
+        public void OnRender();
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
-using GameEngineAPI;
+
+using GameEngineAPI.Assets;
 using GameEngineAPI.Render;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -8,177 +9,128 @@ namespace GameEngineAPI.Components
 {
     public class Mesh : Component
     {
+        //engine stuff
         public string componentID { get => "Mesh"; }
-
         public GameObject? owner { get; set; }
 
-        public List<MeshData> frames = new List<MeshData>();
+        public ObjMeshAsset mesh;
 
+        //animation stuff
         public int currentFrame;
-
         public bool animationLoop;
         public int animationStartFrame;
         public int animationEndFrame;
 
+        int lastFrame; //temp variable, contains last animation frame to check if currentFrame changed
+
+        //openGL stuff
+        int VBO;
+        int VAO;
+        int EBO;
+        int TBO;
+
         public Texture tex;
         public Shader shader;
 
-        public Mesh(string objPath, string objectName, string texturePath = "Palette.png", int animationStart = 1, int animationEnd = 1, string vertShaderPath = @"Shaders\standardVertShader.shader", string fragShaderPath = @"Shaders\standardFragShader.shader")
+        public Mesh(ObjMeshAsset meshAsset, TextureAsset? textureAsset = null, string startAnimation = "Idle", bool animationLoop = false)
         {
-            // creating texture
-            //tex = new Render.Texture(texturePath);
+            mesh = meshAsset;
+            shader = mesh.shader;
+            AnimationData animationData = mesh.GetAnimationByName(startAnimation);
+            List<MeshData> frames = mesh.Frames;
 
-            // reading .obj file
-            string currentObjectName = "";
+            // Creating a Vertex Array Object
+            VAO = GL.GenVertexArray();
+            GL.BindVertexArray(VAO);
+            
+            // creating a Vertex Buffer Object
+            VBO = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
+            GL.BufferData(BufferTarget.ArrayBuffer, frames[animationData.AnimationStartFrame].vertices.Length * sizeof(float), frames[animationData.AnimationStartFrame].vertices, BufferUsageHint.DynamicDraw);
 
-            for (int i = animationStart; i <= animationEnd; i++)
-            {
-                string iString = "_" + i.ToString().PadLeft(6, '0');
-                string file = File.ReadAllText(Path.Combine(AssetManager.AssetsPath, objPath + iString + ".obj"));
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+            GL.EnableVertexAttribArray(0);
 
-                using (StringReader reader = new StringReader(file))
-                {
-                    string line;
-                    List<VertData> tv = new List<VertData>();
-                    List<VertData> tvt = new List<VertData>();
-                    List<uint> tInd = new List<uint>();
+            // textures
+            /// creating a Texture Buffer Object
+            TBO = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, TBO);
+            GL.BufferData(BufferTarget.ArrayBuffer, frames[animationData.AnimationStartFrame].textureCoordinates.Length * sizeof(float), frames[animationData.AnimationStartFrame].textureCoordinates, BufferUsageHint.DynamicDraw);
 
-                    shader = new Shader(Path.Combine(AssetManager.AssetsPath, vertShaderPath), Path.Combine(AssetManager.AssetsPath + fragShaderPath));
+            // passing coordinates to a shader
+            int texCoordLocation = shader.GetAttribLocation("vertTexCoord");
+            GL.EnableVertexAttribArray(texCoordLocation);
+            GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
 
-                    List<float> v = new List<float>();
-                    List<uint> ind = new List<uint>();
-                    List<float> tc = new List<float>();
+            // creating Element Buffer Object
+            EBO = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, EBO);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, frames[animationData.AnimationStartFrame].indices.Length * sizeof(uint), frames[animationData.AnimationStartFrame].indices, BufferUsageHint.DynamicDraw);
 
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        // getting current object
-                        if (line.StartsWith("o "))
-                        {
-                            currentObjectName = line.Remove(0, 2);
-                        }
-
-                        // getting vertex pos
-                        else if (line.StartsWith("v ") && currentObjectName == objectName)
-                        {
-                            VertData data = new VertData(
-                                float.Parse(line.Remove(0, 2).Split(' ')[2], CultureInfo.InvariantCulture.NumberFormat),
-                                float.Parse(line.Remove(0, 2).Split(' ')[1], CultureInfo.InvariantCulture.NumberFormat),
-                                float.Parse(line.Remove(0, 2).Split(' ')[0], CultureInfo.InvariantCulture.NumberFormat)
-                            );
-                            tv.Add(data);
-                        }
-                        // getting vertex texture coords
-                        else if (line.StartsWith("vt ") && currentObjectName == objectName)
-                        {
-                            VertData data = new VertData(
-                                float.Parse(line.Remove(0, 3).Split(' ')[0], CultureInfo.InvariantCulture.NumberFormat),
-                                float.Parse(line.Remove(0, 3).Split(' ')[1], CultureInfo.InvariantCulture.NumberFormat)
-                            );
-                            tvt.Add(data);
-                        }
-
-                        // getting indices
-                        else if (line.StartsWith("f ") && currentObjectName == objectName)
-                        {
-                            // Getting indices and adding them to the main list
-                            /// adding ind #1
-                            int indVert1 = int.Parse(line.Remove(0, 2).Split(' ')[0].Split('/')[0], CultureInfo.InvariantCulture.NumberFormat); // getting current vert ind
-                            ind.Add(Convert.ToUInt32(indVert1)); // adding it
-                            int indTex1 = int.Parse(line.Remove(0, 2).Split(' ')[0].Split('/')[1], CultureInfo.InvariantCulture.NumberFormat); // getting current vert texture coords ind
-                            /// adding ind #2
-                            int indVert2 = int.Parse(line.Remove(0, 2).Split(' ')[1].Split('/')[0], CultureInfo.InvariantCulture.NumberFormat); // getting current vert ind
-                            ind.Add(Convert.ToUInt32(indVert2)); // adding it
-                            int indTex2 = int.Parse(line.Remove(0, 2).Split(' ')[1].Split('/')[1], CultureInfo.InvariantCulture.NumberFormat); // getting current vert texture coords ind
-                            /// adding ind #3
-                            int indVert3 = int.Parse(line.Remove(0, 2).Split(' ')[2].Split('/')[0], CultureInfo.InvariantCulture.NumberFormat); // getting current vert ind
-                            ind.Add(Convert.ToUInt32(indVert3)); // adding it
-                            int indTex3 = int.Parse(line.Remove(0, 2).Split(' ')[1].Split('/')[1], CultureInfo.InvariantCulture.NumberFormat); // getting current vert texture coords ind
-
-                            // Adding verts to the main list
-                            /// adding vert #1
-                            v.Add(tv[indVert1 - 1].X);
-                            v.Add(tv[indVert1 - 1].Y);
-                            v.Add(tv[indVert1 - 1].Z);
-                            /// adding vert #2
-                            v.Add(tv[indVert2 - 1].X);
-                            v.Add(tv[indVert2 - 1].Y);
-                            v.Add(tv[indVert2 - 1].Z);
-                            /// adding vert #3
-                            v.Add(tv[indVert3 - 1].X);
-                            v.Add(tv[indVert3 - 1].Y);
-                            v.Add(tv[indVert3 - 1].Z);
-
-                            //Adding texture coordinates to the main list
-                            /// adding vert #1
-                            tc.Add(tvt[indTex1 - 1].X);
-                            tc.Add(tvt[indTex1 - 1].Y);
-                            /// adding vert #2
-                            tc.Add(tvt[indTex2 - 1].X);
-                            tc.Add(tvt[indTex2 - 1].Y);
-                            /// adding vert #3
-                            tc.Add(tvt[indTex3 - 1].X);
-                            tc.Add(tvt[indTex3 - 1].Y);
-                        }
-                    }
-
-                    frames.Add(new MeshData(v.ToArray(), ind.ToArray(), tc.ToArray()));
-                }
-            }
-
-            animationStartFrame = animationStart;
-            animationEndFrame = animationEnd;
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GL.BindVertexArray(0);
 
             Console.WriteLine("mesh component init complete!");
         }
 
         public void OnUpdate()
         {
-            //animation
+            MeshData currentData = mesh.Frames[currentFrame];
+
+            //playing our animation
             if (currentFrame < animationEndFrame - 1)
             {
                 currentFrame++;
+                //updating current frame ref
+                GL.BindVertexArray(VAO);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
+                GL.BufferData(BufferTarget.ArrayBuffer, currentData.vertices.Length, currentData.vertices, BufferUsageHint.DynamicDraw);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+                GL.BindVertexArray(0);
             }
             if (currentFrame >= animationEndFrame - 1 && animationLoop)
             {
                 currentFrame = animationStartFrame;
+                GL.BindVertexArray(VAO);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
+                GL.BufferData(BufferTarget.ArrayBuffer, currentData.vertices.Length, currentData.vertices, BufferUsageHint.DynamicDraw);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+                GL.BindVertexArray(0);
             }
 
-
-            MeshData data = new MeshData(frames[currentFrame].vertices, frames[currentFrame].indices, frames[currentFrame].textureCoordinates);
-
+            //moving vertices depending on transform component
             Transform transform = (Transform)owner.GetComponent("Transform");
-            Vector3 pos = transform.Position;
+            Vector3 pos = transform.Position; // getting pos from transform component
+            //shader.SetVector3("vertPosition", pos); // and moving it to the shader
 
-            List<float> verts = new List<float>();
-            uint[] indices = data.indices;
-            float[] textureCoords = data.textureCoordinates;
+            // passing camera data to the shader
+            var model = Matrix4.Identity;
+            shader.SetMatrix4("model", model);
+            shader.SetMatrix4("view", Render.Render.camera.GetViewMatrix());
+            shader.SetMatrix4("projection", Render.Render.camera.GetProjectionMatrix());
 
-            int coord = 0;
-
-            for (int i = 0; i < data.vertices.Length; i++)
+            /*int coord = 0; //old version
+            for (int i = 0; i < mesh.Frames[currentFrame].vertices.Length; i++)
             {
-                if (coord == 0)
-                {
-                    verts.Add(data.vertices[i] + pos.X);
-                }
-                else if (coord == 1)
-                {
-                    verts.Add(data.vertices[i] + pos.Y);
-                }
-                else if (coord == 2)
-                {
-                    verts.Add(data.vertices[i] + pos.Z);
-                }
+                if (coord == 0) verts[i] = mesh.Frames[currentFrame].vertices[i] + pos.X;
+                if (coord == 1) verts[i] = mesh.Frames[currentFrame].vertices[i] + pos.Y;
+                if (coord == 2) verts[i] = mesh.Frames[currentFrame].vertices[i] + pos.Z;
 
                 coord++;
+                if (coord > 2) coord = 0;
+            }*/
 
-                if (coord >= 3)
-                {
-                    coord = 0;
-                }
-            }
+            lastFrame = currentFrame;
+        }
 
-            Render.Render.meshes.Add(new RenderMeshData(verts.ToArray(), indices.ToArray(), shader, textureCoords));
+        void Draw()
+        {
+            shader.Use();
+            GL.BindVertexArray(VAO);
+
+            //Console.WriteLine(mesh.Frames[currentFrame].indices.Length);
+
+            GL.DrawElements(BeginMode.Triangles, mesh.Frames[currentFrame].indices.Length, DrawElementsType.UnsignedInt, 0);
         }
 
         public void StartAnimation(int startFrame, int stopFrame, bool loop = true)
@@ -187,6 +139,11 @@ namespace GameEngineAPI.Components
             animationStartFrame = startFrame;
             animationEndFrame = stopFrame;
             animationLoop = loop;
+        }
+
+        public void OnRender()
+        {
+            Draw();
         }
     }
 }

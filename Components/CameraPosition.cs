@@ -9,6 +9,8 @@ namespace GameEngineAPI.Components
         public string componentID { get => ""; }
         public GameObject? owner { get; set; }
 
+        public void OnRender() { } 
+
         public void OnUpdate()
         {
             Transform3D transform = (Transform3D)owner.GetComponent("Transform");

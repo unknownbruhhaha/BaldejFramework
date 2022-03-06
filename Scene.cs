@@ -2,7 +2,7 @@
 
 namespace GameEngineAPI
 {
-    public class Scene : Asset
+    public class Scene
     {
         public List<GameObject> gameObjects = new List<GameObject>();
         

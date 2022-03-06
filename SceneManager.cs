@@ -27,6 +27,20 @@ namespace GameEngineAPI
             }
         }
 
+        public static void Render()
+        {
+            for (int i = 0; i < currentScene.gameObjects.Count; i++)
+            {
+                GameObject obj = currentScene.gameObjects[i];
 
+                foreach (Component component in obj.components)
+                {
+                    if (component.GetType().GetMethod("OnRender") != null)
+                    {
+                        component.OnRender();
+                    }
+                }
+            }
+        }
     }
 }

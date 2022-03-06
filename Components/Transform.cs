@@ -13,5 +13,7 @@ namespace GameEngineAPI.Components
         public GameObject? owner { get; set; }
 
         public abstract void OnUpdate();
+
+        public abstract void OnRender();
     }
 }

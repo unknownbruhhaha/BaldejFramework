@@ -27,9 +27,8 @@ namespace GameEngineAPI.Components
             Scale = new Vector3();
         }
 
-        public void OnUpdate()
-        {
+        public void OnUpdate() { }
 
-        }
+        public void OnRender() { }
     }
 }

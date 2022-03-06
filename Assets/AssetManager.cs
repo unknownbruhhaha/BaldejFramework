@@ -1,19 +1,12 @@
 ﻿using System.IO;
 
-namespace GameEngineAPI
+namespace GameEngineAPI.Assets
 {
     public static class AssetManager
     {
         public static string AssetsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Assets\");
         
-        public static void SaveAsset(string path, Asset asset, bool append = false)
-        {
-            using (Stream stream = File.Open(AssetsPath + path, append ? FileMode.Append : FileMode.Create))
-            {
-                var binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                binaryFormatter.Serialize(stream, asset);
-            }
-        }
+        public static List<Asset> Assets = new List<Asset>();
 
         public static Asset LoadAsset(string path)
         {
