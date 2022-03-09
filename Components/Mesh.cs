@@ -26,7 +26,6 @@ namespace GameEngineAPI.Components
         //openGL stuff
         int VBO;
         int VAO;
-        int EBO;
         int TBO;
 
         public Texture tex;
@@ -48,25 +47,14 @@ namespace GameEngineAPI.Components
             GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
             GL.BufferData(BufferTarget.ArrayBuffer, frames[animationData.AnimationStartFrame].vertices.Length * sizeof(float), frames[animationData.AnimationStartFrame].vertices, BufferUsageHint.DynamicDraw);
 
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0);
             GL.EnableVertexAttribArray(0);
 
             // textures
-            /// creating a Texture Buffer Object
-            TBO = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, TBO);
-            GL.BufferData(BufferTarget.ArrayBuffer, frames[animationData.AnimationStartFrame].textureCoordinates.Length * sizeof(float), frames[animationData.AnimationStartFrame].textureCoordinates, BufferUsageHint.DynamicDraw);
-
-            // passing coordinates to a shader
             int texCoordLocation = shader.GetAttribLocation("vertTexCoord");
             GL.EnableVertexAttribArray(texCoordLocation);
             GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
-
-            // creating Element Buffer Object
-            EBO = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, EBO);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, frames[animationData.AnimationStartFrame].indices.Length * sizeof(uint), frames[animationData.AnimationStartFrame].indices, BufferUsageHint.DynamicDraw);
-
+            
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
 
@@ -101,7 +89,7 @@ namespace GameEngineAPI.Components
             //moving vertices depending on transform component
             Transform transform = (Transform)owner.GetComponent("Transform");
             Vector3 pos = transform.Position; // getting pos from transform component
-            //shader.SetVector3("vertPosition", pos); // and moving it to the shader
+            shader.SetVector3("vertexPosition", pos); // and moving it to the shader
 
             // passing camera data to the shader
             var model = Matrix4.Identity;
@@ -109,28 +97,22 @@ namespace GameEngineAPI.Components
             shader.SetMatrix4("view", Render.Render.camera.GetViewMatrix());
             shader.SetMatrix4("projection", Render.Render.camera.GetProjectionMatrix());
 
-            /*int coord = 0; //old version
-            for (int i = 0; i < mesh.Frames[currentFrame].vertices.Length; i++)
-            {
-                if (coord == 0) verts[i] = mesh.Frames[currentFrame].vertices[i] + pos.X;
-                if (coord == 1) verts[i] = mesh.Frames[currentFrame].vertices[i] + pos.Y;
-                if (coord == 2) verts[i] = mesh.Frames[currentFrame].vertices[i] + pos.Z;
-
-                coord++;
-                if (coord > 2) coord = 0;
-            }*/
-
             lastFrame = currentFrame;
         }
 
         void Draw()
         {
+            if (tex != null)
+            {
+                tex.Use(OpenTK.Graphics.OpenGL4.TextureUnit.Texture0);
+            }
+
             shader.Use();
             GL.BindVertexArray(VAO);
 
-            //Console.WriteLine(mesh.Frames[currentFrame].indices.Length);
+            Console.WriteLine(mesh.Frames[currentFrame].vertices.Length / 3);
 
-            GL.DrawElements(BeginMode.Triangles, mesh.Frames[currentFrame].indices.Length, DrawElementsType.UnsignedInt, 0);
+            GL.DrawArrays(BeginMode.Triangles, 0, mesh.Frames[currentFrame].vertices.Length / 3);
         }
 
         public void StartAnimation(int startFrame, int stopFrame, bool loop = true)

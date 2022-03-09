@@ -3,14 +3,10 @@
     public class MeshData
     {
         public float[] vertices;
-        public uint[] indices;
-        public float[] textureCoordinates;
 
-        public MeshData(float[] verts, uint[] ind, float[] texCoords)
+        public MeshData(float[] verts)
         {
             vertices = verts;
-            indices = ind;
-            textureCoordinates = texCoords;
         }
     }
 }

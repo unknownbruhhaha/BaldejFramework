@@ -33,7 +33,6 @@ namespace GameEngineAPI.Assets
                     meshShader = new Shader(Path.Combine(AssetManager.AssetsPath, vertShaderPath), Path.Combine(AssetManager.AssetsPath + fragShaderPath));
 
                     List<float> v = new List<float>();
-                    List<uint> ind = new List<uint>();
                     List<float> tc = new List<float>();
 
                     while ((line = reader.ReadLine()) != null)
@@ -70,45 +69,37 @@ namespace GameEngineAPI.Assets
                             // Getting indices and adding them to the main list
                             /// adding ind #1
                             int indVert1 = int.Parse(line.Remove(0, 2).Split(' ')[0].Split('/')[0], CultureInfo.InvariantCulture.NumberFormat); // getting current vert ind
-                            ind.Add(Convert.ToUInt32(indVert1)); // adding it
                             int indTex1 = int.Parse(line.Remove(0, 2).Split(' ')[0].Split('/')[1], CultureInfo.InvariantCulture.NumberFormat); // getting current vert texture coords ind
                             /// adding ind #2
                             int indVert2 = int.Parse(line.Remove(0, 2).Split(' ')[1].Split('/')[0], CultureInfo.InvariantCulture.NumberFormat); // getting current vert ind
-                            ind.Add(Convert.ToUInt32(indVert2)); // adding it
                             int indTex2 = int.Parse(line.Remove(0, 2).Split(' ')[1].Split('/')[1], CultureInfo.InvariantCulture.NumberFormat); // getting current vert texture coords ind
                             /// adding ind #3
                             int indVert3 = int.Parse(line.Remove(0, 2).Split(' ')[2].Split('/')[0], CultureInfo.InvariantCulture.NumberFormat); // getting current vert ind
-                            ind.Add(Convert.ToUInt32(indVert3)); // adding it
-                            int indTex3 = int.Parse(line.Remove(0, 2).Split(' ')[1].Split('/')[1], CultureInfo.InvariantCulture.NumberFormat); // getting current vert texture coords ind
+                            int indTex3 = int.Parse(line.Remove(0, 2).Split(' ')[2].Split('/')[1], CultureInfo.InvariantCulture.NumberFormat); // getting current vert texture coords ind
 
                             // Adding verts to the main list
                             /// adding vert #1
                             v.Add(tv[indVert1 - 1].X);
                             v.Add(tv[indVert1 - 1].Y);
                             v.Add(tv[indVert1 - 1].Z);
+                            v.Add(tvt[indTex1 - 1].X);
+                            v.Add(tvt[indTex1 - 1].Y);
                             /// adding vert #2
                             v.Add(tv[indVert2 - 1].X);
                             v.Add(tv[indVert2 - 1].Y);
                             v.Add(tv[indVert2 - 1].Z);
+                            v.Add(tvt[indTex2 - 1].X);
+                            v.Add(tvt[indTex2 - 1].Y);
                             /// adding vert #3
                             v.Add(tv[indVert3 - 1].X);
                             v.Add(tv[indVert3 - 1].Y);
                             v.Add(tv[indVert3 - 1].Z);
-
-                            //Adding texture coordinates to the main list
-                            /// adding vert #1
-                            tc.Add(tvt[indTex1 - 1].X);
-                            tc.Add(tvt[indTex1 - 1].Y);
-                            /// adding vert #2
-                            tc.Add(tvt[indTex2 - 1].X);
-                            tc.Add(tvt[indTex2 - 1].Y);
-                            /// adding vert #3
-                            tc.Add(tvt[indTex3 - 1].X);
-                            tc.Add(tvt[indTex3 - 1].Y);
+                            v.Add(tvt[indTex3 - 1].X);
+                            v.Add(tvt[indTex3 - 1].Y);
                         }
                     }
 
-                    Frames.Add(new MeshData(v.ToArray(), ind.ToArray(), tc.ToArray()));
+                    Frames.Add(new MeshData(v.ToArray()));
 
                     Animations = animations;
                     AssetShortName = assetShortName;
